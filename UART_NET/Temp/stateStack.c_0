@@ -1,0 +1,71 @@
+#include "stdafx.h"
+#include "stateStack.h"
+
+PSStateStack StateStack_New(size_t _size)
+{
+	PSStateStack pss = UN_Alloc(sizeof(SStateStack));
+	pss->stack = UN_Alloc(sizeof(void*) * _size);
+	pss->size = _size;
+	pss->index = 0;
+	for (size_t i = 0; i < _size; i++)
+	{
+		pss->stack[i] = NULL;
+	}
+	return pss;
+}
+
+void StateStack_Delete(PSStateStack * p)
+{
+	if (*p)
+	{
+		PSStateStack pss = *p;
+		UN_Free((void*)(pss->stack));
+		UN_Free((void*)(*p));
+		*p = NULL;
+	}
+}
+
+int StateStack_Push(PSStateStack o, void * state)
+{
+	if (o->index == o->size) return (int)ERROR_INSUFFICIENT_BUFFER;
+	o->stack[o->index++] = state;
+	return (int)ERROR_SUCCESS;
+}
+
+int StateStack_Pop(PSStateStack o, void ** pstate)
+{
+	if (o->index == 0) return (int)ERROR_INVALID_OPERATION;
+	*pstate = o->stack[--(o->index)];
+	return (int)ERROR_SUCCESS;
+}
+
+int StateStack_PushAgain(PSStateStack o)
+{
+	if (o->index == o->size) return (int)ERROR_INSUFFICIENT_BUFFER; // stack is full
+	if (o->stack[o->index] == NULL)
+	{ // previous stack top is empty
+		return (int)ERROR_INVALID_OPERATION;
+	}
+	else
+	{ // previous stack top has a valid value
+		o->index++;
+		return (int)ERROR_SUCCESS;
+	}
+}
+
+int StateStack_PopAndClear(PSStateStack o, void ** pstate)
+{
+	if (o->index == 0) return (int)ERROR_INVALID_OPERATION;
+	*pstate = o->stack[--(o->index)];
+	o->stack[o->index] = NULL;
+	return (int)ERROR_SUCCESS;
+}
+
+void StateStack_Clear(PSStateStack o)
+{
+	o->index = 0;
+	for (size_t i = 0; i < o->size; i++)
+	{
+		o->stack[i] = NULL;
+	}
+}

@@ -1,0 +1,32 @@
+@startuml
+state Top {
+    [*] --> DoorClosed : Ev-Enter\n[door closed]
+    [*] --> DoorOpened : Ev-Enter\n[door opened]
+    state DoorClosed {
+        Heating --> Idle : Ev-TimerTick\n[++elapsedTime\n ==timerPerild]\n/Clear setup,\nNotify
+        Heating --> Idle : Ev-Abort\n/Clear timer,\notify
+        Idle --> Heating : Ev-StartHeating\n[with setup]
+        [*] --> Idle : Ev-Enter\n[without setup]
+        [*] --> Heating : Ev-Enter\n[with setup]
+        Heating : Enter/Start timer,\nTurn heater on
+        Heating : Exit/Stop timer,\nTurn heater off
+        Heating --> DoorClosed : Ev-OpenDoor
+        Idle --> DoorClosed : Ev-OpenDoor
+    }
+
+    
+    state DoorOpened {
+        [*] --> NoSet : Ev-Enter\n[without setup]
+        [*] --> Preset : Ev-Enter\n[with setup]
+        NoSet --> Preset : Ev-Setup\n/make setup
+        Preset --> NoSet : Ev-ClearSetup\n/remove setup
+        NoSet --> DoorOpened : Ev-CloseDoor
+        Preset --> DoorOpened : Ev-CloseDoor
+    }
+
+    DoorOpened : Enter/Turn light on
+    DoorClosed : Enter/Turn light off
+    DoorClosed --> DoorOpened : Ev-OpenDoor
+    DoorOpened --> DoorClosed : Ev-CloseDoor
+}
+@enduml

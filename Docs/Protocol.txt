@@ -1,0 +1,32 @@
+1. Low level packet protocol
+HM : Header mark (1 byte: 0x5a)
+DA : Destination major address (1 byte: 0..0xfe, 0xff is reserved for broadcast)
+DL : Data length (1 byte)
+dA : Destination minor address (1 byte)
+SA : Source major address (1 byte)
+sA : Source minor address (1 byte)
+ID : Packet ID (1 byte) serial number belonging to a combination of
+    SA and sA.
+DT : Data (0 .. 128 bytes)
+CRC : CRC (2 bytes, calculated by DA through DT)
+
+CRC 16 polynomial: f(x) = x15 + x12 + x5 + 1
+Refer to SLAU356F (MSP432P4xx SimpleLink™ Microcontrollers Technical Reference Manual)
+
+2. Receiving state machine
+(0) Initial
+(1) Receive a byte -> store it as DA.
+(2) Receive a byte -> store it as dA.
+(3) Receive a byte -> store it as SA.
+(4) Receive a byte -> store it as sA.
+(5) Receive a byte -> store it as DL.
+(6) DataByteCount = 0;
+(7) do { Receive a byte -> store it as DT[DataByteCount++] } while (DataByteCount != DL);
+(8) Receive two bytes -> store it as CRC.
+
+3. Rx ring buffer operation
+RxDataISR -> put bytes & ring buffer Rx handler
+while (ring buffer has data)
+{
+    send byte to packet buffer and call packet buffer Rx handler
+}

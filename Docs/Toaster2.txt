@@ -1,0 +1,35 @@
+@startuml
+state Top {
+    [*] -Up-> DoorClosed : Ev-Enter\n[door is closed]
+    [*] -Up-> DoorOpened : Ev-Enter\n[door is opened]
+    DoorOpened : Enter/Turn light on
+    DoorClosed : Enter/Turn light off
+    DoorClosed -Left-> DoorOpened : Ev-OpenDoor
+    DoorOpened -Right-> DoorClosed : Ev-CloseDoor
+
+    state DoorClosed {
+        [*] -Right-> Heating : Ev-Enter[time!=timeout]
+        [*] -Right-> Idle : Ev-Enter[time==timeout]
+        Heating : Enter/\nTurn heater on\nTurn timer on
+        Heating : Exit/\nTurn heater off\nTurn timer off
+        Heating --> Idle : Ev-TimerTick\n[++time==timeout]\n/Update display
+        Heating --> Heating : Ev-TimerTick\n[++time!=timeout]\n/Update display
+        Heating --> Idle : Ev-ClearSetup\n/time=timeout;
+        Heating --> DoorClosed : Ev-OpenDoor
+        Idle --> Heating : Ev-SetupStart/\ntime=0; timeout=N;
+        Idle --> DoorClosed : Ev-OpenDoor
+    }
+
+    state DoorOpened {
+        [*] -Left-> Ready : Ev-Enter[time!=timeout]
+        [*] -Left-> NotReady : Ev-Enter[time==timeout]
+        NotReady --> Ready : Ev-SetupStart/\ntime=0; timeout=N;
+        NotReady --> DoorOpened : Ev-CloseDoor
+        Ready --> NotReady : Ev-ClearSetup\n/time=timeout;
+        Ready --> DoorOpened : Ev-CloseDoor
+        Ready --> Ready : Ev-SetupStart\n/Update display
+        Ready : Enter/\nUpdate display
+        NotReady : Enter/\nUpdate display
+    }
+}
+@enduml

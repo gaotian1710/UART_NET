@@ -1,0 +1,40 @@
+@startuml
+state Whole {
+    Recovery --> Deciding : timeout
+    Recovery : Enter/Clear error flags, start timer
+    Recovery : Do/Discard Rx byte, clear error flags
+    [*] --> Deciding
+
+    state Deciding {
+        Deciding --> Recovery : Error
+        RxHM --> RxDA : Recv HM
+        RxHM --> RxHM : Recv other
+        RxDA --> ReadAndAct : Recv DA\n[DA == my address ||\n DA == broadcast]
+        RxDA --> ReadAndDiscard : Recv DA\n[DA != my address\n&& DA != broadcast]
+    }
+
+    state ReadAndAct {
+        ReadAndAct --> Recovery : Error
+        ReadAndAct --> RxDL
+        RxDL --> RxSA : Recv DL\n[9 <= DL <= 255]\n/ bcData = DL
+        RxDL --> Deciding : Recv DL\n[DL < 9]
+        RxSA --> RxsA : Recv SA\n[SA != DA &&\nSA != broadcast]/\n--bcData
+        RxSA --> Deciding : Recv SA\n[SA == DA ||\nSA == broadcast]
+        RxsA --> RxID : Recv sA/\n--bcData
+        RxID --> RxDT : Recv ID/\n--bcData
+        RxDT --> RxDT : Recv DT\n[--bcData != 2]
+        RxDT --> RxCRC : Recv DT\n[--bcData == 2]
+        RxCRC --> RxCRC : Recv CRC\n[--bcData != 0]
+        RxCRC --> Deciding : Recv CRC\n[--bcData == 0]/\nCheck CRC
+    }
+
+    state ReadAndDiscard {
+        ReadAndDiscard --> Recovery : Error
+        ReadAndDiscard --> RxDL_Discard
+        RxDL_Discard --> RxBYTE_Discard : Recv DL\n[9 <= DL <= 255]/\nbcData = DL
+        RxDL_Discard --> Deciding : Recv DL\n[DL < 9]
+        RxBYTE_Discard --> RxBYTE_Discard : Recv byte\n[--bcData != 0]/\nDiscard byte
+        RxBYTE_Discard --> Deciding : Recv byte\n[--bcData == 0]/\nDiscard byte
+    }
+}
+@enduml

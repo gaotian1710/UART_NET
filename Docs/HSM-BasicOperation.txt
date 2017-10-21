@@ -1,0 +1,34 @@
+1. base components
+1.1. SHsmState
+It represents a state of state machines. SHsmState consists
+of 1) Enter action handler, enter_, 2) Exit action handler, exit_,
+and 3) state handler, sh. All of instances of SHsmState are statically
+created as const variables.
+
+1.2. SHsm
+It is a main body of a state machine, consisting of 1) context and
+2) stack[] which is an array of SHsmState accompanied by its size
+and current position.
+stack[current] holds the active state. current = -1 when the stack
+is empty. 'cuttent' and 'size' must satisfy current < size.
+
+1.3. void (*HsmActionHandler)(const SHsmMsg* msg, SHsm* hsm)
+An action handler receives a message, msg and modofying the state
+machine context, hsm->context. context can points any type of variables
+but the action handler must know the detailed inside of the context.
+Contents of context usually decide gurard condition of state transitions.
+
+1.4. SHsmMsg (*HsmStateHandler)(const SHsmMsg* msg, SHsm* hsm)
+An state handler receives a message, msg and modifying the state of
+the state machine and context. In a hierarchical state machine of
+this implementation, the state machines are allowed to transit between
+two nested states, 1) the current state and its parent or 2) the current
+state and its child. Then the four transition type are defined as
+    T type stay : no transition, returns { Hsm_stay, NULL }
+    T type child : current state -> child state, returns 
+                    { Hsm_child, PCSHsmState of the child }
+    T type parent : current state -> paretn state, returns 
+                    { Hsm_parent, NULL }
+    T type sibling : current state -> parent state -> child state
+                    { Hsm_sibling, PCShsmState of the sibling }
+

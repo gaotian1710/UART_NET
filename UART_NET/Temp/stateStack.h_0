@@ -1,0 +1,21 @@
+#if !defined(_stateStack_h)
+#define _stateStack_h
+#if defined(__cplusplus)
+extern "C" {
+#endif
+	typedef struct _SStateStack {
+		void* *stack;
+		size_t size, index;
+	} SStateStack, *PSStateStack;
+
+	PSStateStack StateStack_New(size_t _size);
+	void StateStack_Delete(PSStateStack* p);
+	int StateStack_Push(PSStateStack o, void* state);
+	int StateStack_Pop(PSStateStack o, void* *pstate);
+	int StateStack_PushAgain(PSStateStack o);
+	int StateStack_PopAndClear(PSStateStack o, void* *pstate);
+	void StateStack_Clear(PSStateStack o);
+#if defined(__cplusplus)
+}
+#endif
+#endif
